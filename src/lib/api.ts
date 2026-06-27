@@ -21,13 +21,7 @@ api.interceptors.request.use(async (config) => {
         isCsrfSet = true;
     }
     
-    // Axios usually does this automatically, but if it was just fetched, the current config might miss it
-    if (typeof window !== 'undefined' && ['post', 'put', 'patch', 'delete'].includes(config.method ?? '')) {
-        const match = document.cookie.match(new RegExp('(^|;\\s*)(XSRF-TOKEN)=([^;]*)'));
-        if (match && match[3]) {
-            config.headers['X-XSRF-TOKEN'] = decodeURIComponent(match[3]);
-        }
-    }
+
     
     return config;
 });
