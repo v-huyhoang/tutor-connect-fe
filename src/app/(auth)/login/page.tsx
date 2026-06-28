@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
-import api from '@/lib/api';
+import api, { csrf } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,6 +50,7 @@ export default function LoginPage() {
         setIsLoading(true);
         setError(null);
         try {
+            await csrf();
             await api.post('/api/login', data);
             const userResponse = await api.get('/api/me');
             

@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
-import api from '@/lib/api';
+import api, { csrf } from '@/lib/api';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -58,6 +58,7 @@ export default function RegisterPage() {
         setIsLoading(true);
         setError(null);
         try {
+            await csrf();
             await api.post('/api/register', data);
             // After successful registration, log them in automatically
             await api.post('/api/login', {

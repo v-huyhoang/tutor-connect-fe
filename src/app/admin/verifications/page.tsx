@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+  IconCheck,
+  IconClock,
+  IconX,
+  IconUser,
+  IconId,
+  IconCertificate,
+  IconVideo,
+  IconExternalLink,
+} from "@tabler/icons-react";
 
 type Document = {
   id: number;
@@ -30,7 +30,6 @@ type TutorProfile = {
 };
 
 export default function AdminVerificationsPage() {
-  const router = useRouter();
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -41,7 +40,7 @@ export default function AdminVerificationsPage() {
       setTutors(response.data.data);
     } catch (err: any) {
       if (err.response?.status === 401 || err.response?.status === 403) {
-        window.location.href = '/login';
+        window.location.href = "/login";
       }
     } finally {
       setIsLoading(false);
@@ -64,7 +63,7 @@ export default function AdminVerificationsPage() {
           type,
         });
       } else {
-        const note = prompt("Nhập lý do từ chối tài liệu này:");
+        const note = prompt("Nhập lý do từ chối tài liệu này (bắt buộc):");
         if (!note) return;
         await api.post(`/api/admin/tutors/${tutorId}/reject-document`, {
           type,
@@ -73,7 +72,7 @@ export default function AdminVerificationsPage() {
       }
       await fetchTutors();
     } catch (err: unknown) {
-      alert("Có lỗi xảy ra.");
+      alert("Có lỗi xảy ra khi cập nhật tài liệu.");
     } finally {
       setActionLoading(null);
     }
@@ -87,16 +86,16 @@ export default function AdminVerificationsPage() {
     try {
       if (action === "verify") {
         await api.post(`/api/admin/tutors/${tutorId}/verify`);
-        alert("Đã duyệt hồ sơ gia sư.");
+        alert("Đã duyệt hồ sơ gia sư thành công.");
       } else {
-        const reason = prompt("Nhập lý do từ chối toàn bộ hồ sơ:");
+        const reason = prompt("Nhập lý do từ chối toàn bộ hồ sơ (bắt buộc):");
         if (!reason) return;
         await api.post(`/api/admin/tutors/${tutorId}/reject`, { reason });
         alert("Đã từ chối hồ sơ.");
       }
       await fetchTutors();
     } catch (err: unknown) {
-      alert("Có lỗi xảy ra.");
+      alert("Có lỗi xảy ra khi cập nhật hồ sơ.");
     } finally {
       setActionLoading(null);
     }
@@ -104,185 +103,184 @@ export default function AdminVerificationsPage() {
 
   if (isLoading)
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        Đang tải...
+      <div className="p-8 md:p-12 max-w-6xl mx-auto flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-slate-500 font-medium text-sm">Đang tải dữ liệu...</span>
+        </div>
       </div>
     );
 
-  const translateType = (type: string) => {
-    const types: Record<string, string> = {
-      avatar: "Ảnh đại diện",
-      cccd_front: "Mặt trước CCCD",
-      cccd_back: "Mặt sau CCCD",
-      degree: "Bằng cấp",
-      intro_video: "Video giới thiệu",
-    };
-    return types[type] || type;
-  };
-
-  const handleLogout = async () => {
-    try {
-      await api.post("/api/logout");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      window.location.href = "/login";
+  const getTypeInfo = (type: string) => {
+    switch (type) {
+      case "avatar":
+        return { label: "Ảnh đại diện", icon: IconUser };
+      case "cccd_front":
+        return { label: "Mặt trước CCCD", icon: IconId };
+      case "cccd_back":
+        return { label: "Mặt sau CCCD", icon: IconId };
+      case "degree":
+        return { label: "Bằng cấp", icon: IconCertificate };
+      case "intro_video":
+        return { label: "Video giới thiệu", icon: IconVideo };
+      default:
+        return { label: type, icon: IconCheck };
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-12">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Kiểm duyệt Gia sư
-            </h1>
-            <p className="text-slate-500 mt-2">
-              Danh sách các hồ sơ gia sư đang chờ kiểm duyệt.
-            </p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-sm rounded-lg text-sm font-medium transition-colors"
-          >
-            Đăng xuất
-          </button>
-        </div>
+    <div className="p-8 md:p-12 max-w-7xl mx-auto">
+      <div className="mb-10">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Phê duyệt hồ sơ</h1>
+        <p className="text-slate-500">
+          Danh sách gia sư đang chờ hệ thống kiểm tra và xác thực thông tin.
+        </p>
+      </div>
 
-        {tutors.length === 0 ? (
-          <Card className="rounded-2xl border-slate-200 shadow-sm p-12 text-center text-slate-500">
-            Không có hồ sơ nào đang chờ duyệt.
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {tutors.map((tutor) => (
-              <Card
-                key={tutor.id}
-                className="rounded-2xl border-slate-200 shadow-sm"
-              >
-                <CardHeader className="border-b bg-slate-50/50">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <CardTitle className="text-xl">
-                        {tutor.user.name}
-                      </CardTitle>
-                      <CardDescription>
-                        {tutor.user.email}{" "}
-                        {tutor.user.phone && `• ${tutor.user.phone}`}
-                      </CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => handleTutorAction(tutor.id, "reject")}
-                        disabled={!!actionLoading}
-                      >
-                        Từ chối hồ sơ
-                      </Button>
-                      <Button
-                        className="rounded-xl bg-green-600 hover:bg-green-700"
-                        onClick={() => handleTutorAction(tutor.id, "verify")}
-                        disabled={!!actionLoading}
-                      >
-                        Duyệt toàn bộ hồ sơ
-                      </Button>
+      {tutors.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+            <IconCheck size={32} stroke={1.5} />
+          </div>
+          <h3 className="text-lg font-medium text-slate-900 mb-1">Tất cả đã hoàn tất</h3>
+          <p className="text-slate-500">Không còn hồ sơ nào đang chờ duyệt lúc này.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {tutors.map((tutor) => (
+            <div
+              key={tutor.id}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col"
+            >
+              {/* Card Header */}
+              <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+                <div className="flex gap-4 items-center">
+                  <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 font-medium text-lg">
+                    {tutor.user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      {tutor.user.name}
+                    </h3>
+                    <div className="text-sm text-slate-500 flex flex-col sm:flex-row sm:gap-3">
+                      <span>{tutor.user.email}</span>
+                      {tutor.user.phone && (
+                        <span className="hidden sm:inline text-slate-300">•</span>
+                      )}
+                      {tutor.user.phone && <span>{tutor.user.phone}</span>}
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-slate-900 mb-4">
-                    Tài liệu đã nộp
-                  </h3>
-                  {tutor.documents.length === 0 ? (
-                    <p className="text-sm text-slate-500 italic">
-                      Chưa tải lên tài liệu nào.
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {tutor.documents.map((doc) => (
+                </div>
+                {/* Signature Badge: asymmetric corners */}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-tr-xl rounded-bl-xl ml-4">
+                  <IconClock size={14} stroke={2} />
+                  <span>Chờ duyệt</span>
+                </div>
+              </div>
+
+              {/* Card Body - Documents */}
+              <div className="p-6 flex-1 flex flex-col">
+                <h4 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">
+                  Tài liệu tải lên
+                </h4>
+
+                {tutor.documents.length === 0 ? (
+                  <p className="text-sm text-slate-500 italic py-4">
+                    Gia sư chưa tải lên tài liệu nào.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {tutor.documents.map((doc) => {
+                      const { label, icon: TypeIcon } = getTypeInfo(doc.type);
+                      const isApproved = doc.status === "approved";
+                      const isRejected = doc.status === "rejected";
+
+                      return (
                         <div
                           key={doc.id}
-                          className="border rounded-xl p-4 flex flex-col justify-between"
+                          className={`border rounded-xl p-4 flex flex-col gap-3 transition-colors ${
+                            isApproved
+                              ? "border-emerald-200 bg-emerald-50/30"
+                              : isRejected
+                              ? "border-rose-200 bg-rose-50/30"
+                              : "border-slate-200"
+                          }`}
                         >
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-sm">
-                                {translateType(doc.type)}
-                              </span>
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded-full ${
-                                  doc.status === "approved"
-                                    ? "bg-green-100 text-green-700"
-                                    : doc.status === "rejected"
-                                      ? "bg-red-100 text-red-700"
-                                      : "bg-yellow-100 text-yellow-700"
-                                }`}
-                              >
-                                {doc.status}
-                              </span>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2 text-slate-700">
+                              <TypeIcon size={18} stroke={1.5} className="text-slate-400" />
+                              <span className="font-medium text-sm">{label}</span>
                             </div>
-                            <a
-                              href={
-                                "http://localhost:8000/storage/" + doc.file_path
-                              }
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-sm text-blue-600 hover:underline block mb-4"
-                            >
-                              Xem tài liệu
-                            </a>
-                            {doc.admin_note && (
-                              <p className="text-xs text-red-500 mb-4">
-                                Note: {doc.admin_note}
-                              </p>
+                            {isApproved && (
+                              <IconCheck size={18} stroke={2} className="text-emerald-600" />
+                            )}
+                            {isRejected && (
+                              <IconX size={18} stroke={2} className="text-rose-600" />
                             )}
                           </div>
 
+                          <a
+                            href={"http://localhost:8000/storage/" + doc.file_path}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 self-start"
+                          >
+                            Mở tài liệu
+                            <IconExternalLink size={12} stroke={2} />
+                          </a>
+
+                          {doc.admin_note && (
+                            <p className="text-xs text-rose-600 bg-rose-50 p-2 rounded-md mt-1 border border-rose-100">
+                              <span className="font-semibold">Lý do:</span> {doc.admin_note}
+                            </p>
+                          )}
+
                           {doc.status === "submitted" && (
-                            <div className="flex gap-2 mt-auto">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="flex-1 rounded-lg text-red-600 border-red-200 hover:bg-red-50"
-                                onClick={() =>
-                                  handleDocumentAction(
-                                    tutor.id,
-                                    doc.type,
-                                    "reject",
-                                  )
-                                }
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => handleDocumentAction(tutor.id, doc.type, "reject")}
                                 disabled={!!actionLoading}
+                                className="flex-1 py-1.5 px-3 text-xs font-medium rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50 active:scale-[0.98]"
                               >
                                 Từ chối
-                              </Button>
-                              <Button
-                                size="sm"
-                                className="flex-1 rounded-lg bg-blue-600 hover:bg-blue-700"
-                                onClick={() =>
-                                  handleDocumentAction(
-                                    tutor.id,
-                                    doc.type,
-                                    "approve",
-                                  )
-                                }
+                              </button>
+                              <button
+                                onClick={() => handleDocumentAction(tutor.id, doc.type, "approve")}
                                 disabled={!!actionLoading}
+                                className="flex-1 py-1.5 px-3 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 active:scale-[0.98]"
                               >
                                 Duyệt
-                              </Button>
+                              </button>
                             </div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Tutor Actions */}
+                <div className="mt-auto pt-6 border-t border-slate-100 flex gap-3">
+                  <button
+                    onClick={() => handleTutorAction(tutor.id, "reject")}
+                    disabled={!!actionLoading}
+                    className="flex-1 py-2.5 px-4 text-sm font-medium rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50 active:scale-[0.98]"
+                  >
+                    Từ chối hồ sơ
+                  </button>
+                  <button
+                    onClick={() => handleTutorAction(tutor.id, "verify")}
+                    disabled={!!actionLoading}
+                    className="flex-1 py-2.5 px-4 text-sm font-medium rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 active:scale-[0.98]"
+                  >
+                    Hoàn tất phê duyệt
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

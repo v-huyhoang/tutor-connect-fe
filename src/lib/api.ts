@@ -3,28 +3,18 @@ import axios from 'axios';
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
     withCredentials: true, // Required for Laravel Sanctum cookie-based CSRF
+    withXSRFToken: true, // Required in Axios >= 1.6 to send CSRF token cross-origin
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
     }
 });
 
-// Setup CSRF token automatically before each request
-let isCsrfSet = false;
-
-api.interceptors.request.use(async (config) => {
-    if (['post', 'put', 'patch', 'delete'].includes(config.method ?? '') && !isCsrfSet) {
-        // Fetch CSRF cookie
-        await axios.get(`${config.baseURL}/sanctum/csrf-cookie`, {
-            withCredentials: true
-        });
-        isCsrfSet = true;
+export const csrf = async () => {
+    if (typeof window !== 'undefined' && !document.cookie.includes('XSRF-TOKEN')) {
+        await api.get('/sanctum/csrf-cookie');
     }
-    
-
-    
-    return config;
-});
+};
 
 // Setup response interceptor to handle 401/419 globally
 api.interceptors.response.use(
