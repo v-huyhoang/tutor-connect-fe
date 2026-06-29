@@ -79,3 +79,14 @@ export interface ApiErrorResponse {
     message: string;
     errors?: Record<string, string[]>;
 }
+
+export enum ActiveStatus {
+    ACTIVE = '1',
+    INACTIVE = '0'
+}
+
+export const ActiveStatusLabel: Record<ActiveStatus, string> = {
+    [ActiveStatus.ACTIVE]: 'Active',
+    [ActiveStatus.INACTIVE]: 'Inactive',
+};
+

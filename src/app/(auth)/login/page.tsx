@@ -8,6 +8,7 @@ import * as z from 'zod';
 import Link from 'next/link';
 import api, { csrf } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { parseApiError } from '@/lib/error-utils';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -63,7 +64,7 @@ export default function LoginPage() {
                 router.push('/admin/verifications');
             }
         } catch (err: unknown) {
-            setError((err as Error).message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+            setError(parseApiError(err, 'Đăng nhập thất bại. Vui lòng thử lại.'));
         } finally {
             setIsLoading(false);
         }

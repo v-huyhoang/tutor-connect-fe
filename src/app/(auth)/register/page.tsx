@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
 import api, { csrf } from '@/lib/api';
+import { parseApiError } from '@/lib/error-utils';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -74,7 +75,7 @@ export default function RegisterPage() {
                 router.push('/tutor/dashboard');
             }
         } catch (err: unknown) {
-            setError((err as Error).message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
+            setError(parseApiError(err, 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'));
         } finally {
             setIsLoading(false);
         }
